@@ -1,0 +1,184 @@
+version: '3.8'
+
+# =============================================
+# 生产环境配置（集群版本）
+# 启动：docker-compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# =============================================
+
+services:
+  # ==================== MySQL 主从复制 ====================
+  mysql-master:
+    image: mysql:8.0
+    container_name: seckill-mysql-master
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      MYSQL_DATABASE: seckill_db
+      TZ: Asia/Shanghai
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-master-data:/var/lib/mysql
+      - ./docker/mysql/master.cnf:/etc/mysql/conf.d/master.cnf:ro
+      - ./src/main/resources/sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    command:
+      - --server-id=1
+      - --log-bin=mysql-bin
+      - --binlog-format=ROW
+      - --gtid-mode=ON
+      - --enforce-gtid-consistency=ON
+    networks:
+      - seckill-network
+
+  mysql-slave:
+    image: mysql:8.0
+    container_name: seckill-mysql-slave
+    restart: always
+    depends_on:
+      - mysql-master
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root}
+      TZ: Asia/Shanghai
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-slave-data:/var/lib/mysql
+      - ./docker/mysql/slave.cnf:/etc/mysql/conf.d/slave.cnf:ro
+    command:
+      - --server-id=2
+      - --relay-log=mysql-relay-bin
+      - --read-only=ON
+    networks:
+      - seckill-network
+
+  # ==================== Redis Cluster ====================
+  redis-master:
+    image: redis:7-alpine
+    container_name: seckill-redis-master
+    restart: always
+    command: redis-server --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-master-data:/data
+    networks:
+      - seckill-network
+
+  redis-slave:
+    image: redis:7-alpine
+    container_name: seckill-redis-slave
+    restart: always
+    depends_on:
+      - redis-master
+    command: redis-server --slaveof redis-master 6379 --appendonly yes --requirepass ${REDIS_PASSWORD:-}
+    ports:
+      - "6380:6379"
+    volumes:
+      - redis-slave-data:/data
+    networks:
+      - seckill-network
+
+  # ==================== Kafka 集群 ====================
+  kafka-1:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: seckill-kafka-1
+    restart: always
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+    volumes:
+      - kafka-1-data:/var/lib/kafka/data
+    networks:
+      - seckill-network
+
+  kafka-2:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: seckill-kafka-2
+    restart: always
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+    volumes:
+      - kafka-2-data:/var/lib/kafka/data
+    networks:
+      - seckill-network
+
+  kafka-3:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: seckill-kafka-3
+    restart: always
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:29092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+    volumes:
+      - kafka-3-data:/var/lib/kafka/data
+    networks:
+      - seckill-network
+
+  # ==================== 应用集群（3个实例） ====================
+  app-1:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: seckill-app-1
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-1:29092,kafka-2:29092,kafka-3:29092
+    ports:
+      - "8081:8080"
+    networks:
+      - seckill-network
+
+  app-2:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: seckill-app-2
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-1:29092,kafka-2:29092,kafka-3:29092
+    ports:
+      - "8082:8080"
+    networks:
+      - seckill-network
+
+  app-3:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: seckill-app-3
+    restart: always
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka-1:29092,kafka-2:29092,kafka-3:29092
+    ports:
+      - "8083:8080"
+    networks:
+      - seckill-network
+
+volumes:
+  mysql-master-data:
+  mysql-slave-data:
+  redis-master-data:
+  redis-slave-data:
+  kafka-1-data:
+  kafka-2-data:
+  kafka-3-data:
+
+networks:
+  seckill-network:
+    driver: bridge
