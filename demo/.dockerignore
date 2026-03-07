@@ -1,0 +1,48 @@
+# Maven 构建产物
+target/
+!target/*.jar
+*.class
+
+# IDE 配置
+.idea/
+.vscode/
+*.iml
+*.ipr
+*.iws
+.settings/
+.classpath
+.project
+
+# 日志文件
+logs/
+*.log
+
+# 临时文件
+*.tmp
+*.bak
+*.swp
+*~
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# Docker 相关
+.dockerignore
+Dockerfile
+docker-compose*.yml
+
+# 文档
+README.md
+HELP.md
+doc/
+
+# 测试
+src/test/
+
+# macOS
+.DS_Store
+
+# Windows
+Thumbs.db

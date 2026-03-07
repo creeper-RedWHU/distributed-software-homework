@@ -1,0 +1,7 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: seckill
+  labels:
+    name: seckill
+    environment: production
