@@ -7,9 +7,9 @@ spring:
 
   # MySQL 数据源
   datasource:
-    url: jdbc:mysql://localhost:3306/seckill_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+    url: jdbc:mysql://localhost:3306/distributed?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
     username: root
-    password: root
+    password: wepiePro
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
       maximum-pool-size: 20
@@ -31,28 +31,6 @@ spring:
           max-idle: 10
           min-idle: 5
           max-wait: 3000ms
-
-  # Kafka
-  kafka:
-    bootstrap-servers: localhost:9092
-    producer:
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
-      acks: all
-      retries: 3
-      properties:
-        enable.idempotence: true
-        max.in.flight.requests.per.connection: 1
-    consumer:
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
-      auto-offset-reset: earliest
-      enable-auto-commit: false
-      properties:
-        spring.json.trusted.packages: com.example.demo.model.dto
-    listener:
-      ack-mode: manual_immediate
-      concurrency: 3
 
   # Jackson
   jackson:
@@ -79,11 +57,3 @@ logging:
   level:
     com.example.demo: DEBUG
     com.example.demo.mapper: DEBUG
-
-# Seckill custom config
-seckill:
-  order-expire-minutes: 15
-  stock-warmup-before-minutes: 5
-  rate-limit:
-    max-requests: 5
-    window-seconds: 1
