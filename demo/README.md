@@ -214,8 +214,29 @@ WebSocket 推送结果  ──→ 用户实时收到通知
 - **实时推送**: WebSocket 推送秒杀结果和库存变化
 - **Hook 插件化**: 限流、日志、重复订单检测等可扩展插件
 - **Event 事件总线**: 解耦业务逻辑，支持事件驱动
+- **🔐 用户认证与权限管理**: 基于 Apache Shiro 的登录认证和权限控制（新增）
 
 ## 接口示例
+
+### 用户登录（新增）
+
+```bash
+# 商家登录
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -c cookies.txt \
+  -d '{"username":"merchant1","password":"123456"}'
+
+# 获取当前用户信息
+curl http://localhost:8080/api/auth/info -b cookies.txt
+
+# 测试权限
+curl http://localhost:8080/api/auth/test/merchant -b cookies.txt
+```
+
+**测试账号**: merchant1/buyer1/admin1 (密码: 123456)
+
+**详细文档**: [doc/Shiro登录系统/](doc/Shiro登录系统/) | [完整文档索引](doc/README.md)
 
 ### 查询秒杀活动列表
 
@@ -249,6 +270,24 @@ ws.onmessage = (event) => {
 ## 文档
 
 ### 完整文档列表
+
+#### 🔐 用户认证与权限管理（新增）
+
+**📂 所有文档已整理到 [doc/](doc/) 目录**
+
+| 分类 | 说明 |
+|------|------|
+| [📘 Shiro登录系统](doc/Shiro登录系统/) | 快速开始、使用指南、技术文档 |
+| [🔧 问题修复](doc/问题修复/) | 所有问题的排查和解决方案 |
+| [🧪 测试工具](doc/测试工具/) | API 测试脚本、Postman 集合 |
+| [📑 完整索引](doc/README.md) | ⭐ 文档导航和快速查找 |
+
+**推荐阅读顺序**:
+1. [快速开始](doc/Shiro登录系统/01-快速开始.md)
+2. [SpringBoot版本说明](doc/问题修复/04-SpringBoot版本降级说明.md)（重要）
+3. [详细使用指南](doc/Shiro登录系统/02-详细使用指南.md)
+
+#### 📘 秒杀系统文档
 
 | 文档 | 说明 |
 |------|------|

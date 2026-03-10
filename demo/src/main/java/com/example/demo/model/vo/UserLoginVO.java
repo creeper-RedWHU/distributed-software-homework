@@ -15,4 +15,6 @@ public class UserLoginVO {
     private String token; // JWT Token
 
     private Long expiresIn; // 过期时间（秒）
+
+    private String userType; // 用户类型: MERCHANT/BUYER/ADMIN
 }

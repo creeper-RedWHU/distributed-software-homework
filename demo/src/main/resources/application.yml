@@ -57,3 +57,4 @@ logging:
   level:
     com.example.demo: DEBUG
     com.example.demo.mapper: DEBUG
+    org.apache.shiro: DEBUG
