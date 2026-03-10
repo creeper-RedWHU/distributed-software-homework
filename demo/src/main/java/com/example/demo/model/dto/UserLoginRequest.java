@@ -1,7 +1,7 @@
 package com.example.demo.model.dto;
 
 import lombok.Data;
-import jakarta.validation.constraints.NotBlank;
+import javax.validation.constraints.NotBlank;
 
 /**
  * 用户登录请求 DTO

@@ -10,7 +10,9 @@ public enum ErrorCode {
 
     // 通用
     SUCCESS(200, "success"),
+    PARAM_ERROR(400, "参数错误"),
     BAD_REQUEST(400, "参数错误"),
+    NOT_LOGIN(401, "未登录"),
     UNAUTHORIZED(401, "未登录"),
     FORBIDDEN(403, "无权限"),
     SYSTEM_ERROR(5000, "系统错误"),

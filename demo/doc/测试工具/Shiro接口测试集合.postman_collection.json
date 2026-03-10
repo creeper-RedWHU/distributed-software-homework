@@ -1,0 +1,252 @@
+{
+  "info": {
+    "name": "Shiro 登录认证系统 API",
+    "description": "Apache Shiro 登录认证系统的完整 API 测试集合",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:8080",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. 用户注册",
+      "item": [
+        {
+          "name": "商家注册",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_merchant\",\n  \"password\": \"123456\",\n  \"phone\": \"13900001111\",\n  \"email\": \"merchant@test.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register/merchant",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register", "merchant"]
+            }
+          }
+        },
+        {
+          "name": "买家注册",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"test_buyer\",\n  \"password\": \"123456\",\n  \"phone\": \"13900002222\",\n  \"email\": \"buyer@test.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register/buyer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register", "buyer"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "2. 用户登录",
+      "item": [
+        {
+          "name": "商家登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"merchant1\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "买家登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"buyer1\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "管理员登录",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin1\",\n  \"password\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "3. 用户信息",
+      "item": [
+        {
+          "name": "获取当前用户信息",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/info",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "info"]
+            }
+          }
+        },
+        {
+          "name": "修改密码",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/change-password?oldPassword=123456&newPassword=654321",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "change-password"],
+              "query": [
+                {
+                  "key": "oldPassword",
+                  "value": "123456"
+                },
+                {
+                  "key": "newPassword",
+                  "value": "654321"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "4. 权限测试",
+      "item": [
+        {
+          "name": "测试商家权限",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/test/merchant",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "test", "merchant"]
+            }
+          }
+        },
+        {
+          "name": "测试买家权限",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/test/buyer",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "test", "buyer"]
+            }
+          }
+        },
+        {
+          "name": "测试管理员权限",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/test/admin",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "test", "admin"]
+            }
+          }
+        },
+        {
+          "name": "测试创建商品权限",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/test/create-product",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "test", "create-product"]
+            }
+          }
+        },
+        {
+          "name": "测试查看订单权限",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/test/view-order",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "test", "view-order"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "5. 登出",
+      "item": [
+        {
+          "name": "用户登出",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/auth/logout",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "logout"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

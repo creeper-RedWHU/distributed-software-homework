@@ -29,6 +29,10 @@ public class Result<T> {
         return new Result<>(errorCode.getCode(), errorCode.getMessage(), null, System.currentTimeMillis());
     }
 
+    public static <T> Result<T> fail(ErrorCode errorCode, String message) {
+        return new Result<>(errorCode.getCode(), message, null, System.currentTimeMillis());
+    }
+
     public static <T> Result<T> fail(int code, String message) {
         return new Result<>(code, message, null, System.currentTimeMillis());
     }
