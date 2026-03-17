@@ -5,17 +5,22 @@ spring:
   application:
     name: seckill-system
 
-  # MySQL 数据源
+  # MySQL 数据源（读写分离：master写 / slave读）
   datasource:
-    url: jdbc:mysql://localhost:3306/distributed?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
-    username: root
-    password: wepiePro
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      maximum-pool-size: 20
-      minimum-idle: 5
-      connection-timeout: 30000
-      idle-timeout: 600000
+    master:
+      url: jdbc:mysql://localhost:3306/distributed?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+      username: root
+      password: wepiePro
+    slave:
+      url: jdbc:mysql://localhost:3306/distributed?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true&createDatabaseIfNotExist=true
+      username: root
+      password: wepiePro
+
+  # ElasticSearch
+  elasticsearch:
+    uris: http://localhost:9200
+    connection-timeout: 3s
+    socket-timeout: 10s
 
   # Redis (Spring Boot 2.7 使用 spring.redis 前缀)
   redis:

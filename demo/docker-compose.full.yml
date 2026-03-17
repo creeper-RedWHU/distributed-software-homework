@@ -1,13 +1,13 @@
 # =============================================
-# 负载均衡部署方案
-# 启动: docker-compose -f docker-compose.lb.yml up -d --build
+# 完整部署方案（读写分离 + ElasticSearch + 负载均衡）
+# 启动: docker-compose -f docker-compose.full.yml up -d --build
 # =============================================
 
 services:
-  # ==================== MySQL ====================
-  mysql:
+  # ==================== MySQL Master (主库-读写) ====================
+  mysql-master:
     image: mysql:8.0
-    container_name: seckill-mysql
+    container_name: seckill-mysql-master
     restart: always
     environment:
       MYSQL_ROOT_PASSWORD: root
@@ -16,8 +16,42 @@ services:
     ports:
       - "3306:3306"
     volumes:
-      - mysql-data:/var/lib/mysql
-      - ./src/main/resources/sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+      - mysql-master-data:/var/lib/mysql
+      - ./docker/mysql/master/my.cnf:/etc/mysql/conf.d/master.cnf:ro
+      - ./src/main/resources/sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./docker/mysql/master/init-repl.sql:/docker-entrypoint-initdb.d/02-repl.sql
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-authentication-plugin=mysql_native_password
+      - --max_connections=500
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - seckill-network
+
+  # ==================== MySQL Slave (从库-只读) ====================
+  mysql-slave:
+    image: mysql:8.0
+    container_name: seckill-mysql-slave
+    restart: always
+    depends_on:
+      mysql-master:
+        condition: service_healthy
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: seckill_db
+      TZ: Asia/Shanghai
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-slave-data:/var/lib/mysql
+      - ./docker/mysql/slave/my.cnf:/etc/mysql/conf.d/slave.cnf:ro
+      - ./src/main/resources/sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./docker/mysql/slave/init-repl.sh:/docker-entrypoint-initdb.d/02-repl.sh
     command:
       - --character-set-server=utf8mb4
       - --collation-server=utf8mb4_unicode_ci
@@ -49,6 +83,28 @@ services:
     networks:
       - seckill-network
 
+  # ==================== ElasticSearch ====================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.17.16
+    container_name: seckill-es
+    restart: always
+    environment:
+      - discovery.type=single-node
+      - ES_JAVA_OPTS=-Xms512m -Xmx512m
+      - xpack.security.enabled=false
+    ports:
+      - "9200:9200"
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\":\"green\"\\|\"status\":\"yellow\"'"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+    networks:
+      - seckill-network
+
   # ==================== 后端实例 1 (端口 8081) ====================
   app1:
     build:
@@ -57,22 +113,27 @@ services:
     container_name: seckill-app1
     restart: always
     depends_on:
-      mysql:
+      mysql-master:
+        condition: service_healthy
+      mysql-slave:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
     ports:
       - "8081:8081"
     environment:
       SERVER_PORT: 8081
-      SPRING_DATASOURCE_MASTER_URL: jdbc:mysql://mysql:3306/seckill_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_MASTER_URL: jdbc:mysql://mysql-master:3306/seckill_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_MASTER_USERNAME: root
       SPRING_DATASOURCE_MASTER_PASSWORD: root
-      SPRING_DATASOURCE_SLAVE_URL: jdbc:mysql://mysql:3306/seckill_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_SLAVE_URL: jdbc:mysql://mysql-slave:3306/seckill_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_SLAVE_USERNAME: root
       SPRING_DATASOURCE_SLAVE_PASSWORD: root
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
       SPRING_SQL_INIT_MODE: always
       TZ: Asia/Shanghai
     volumes:
@@ -94,22 +155,27 @@ services:
     container_name: seckill-app2
     restart: always
     depends_on:
-      mysql:
+      mysql-master:
+        condition: service_healthy
+      mysql-slave:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      elasticsearch:
         condition: service_healthy
     ports:
       - "8082:8082"
     environment:
       SERVER_PORT: 8082
-      SPRING_DATASOURCE_MASTER_URL: jdbc:mysql://mysql:3306/seckill_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_MASTER_URL: jdbc:mysql://mysql-master:3306/seckill_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_MASTER_USERNAME: root
       SPRING_DATASOURCE_MASTER_PASSWORD: root
-      SPRING_DATASOURCE_SLAVE_URL: jdbc:mysql://mysql:3306/seckill_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
+      SPRING_DATASOURCE_SLAVE_URL: jdbc:mysql://mysql-slave:3306/seckill_db?useUnicode=true&characterEncoding=utf-8&serverTimezone=Asia/Shanghai&useSSL=false&allowPublicKeyRetrieval=true
       SPRING_DATASOURCE_SLAVE_USERNAME: root
       SPRING_DATASOURCE_SLAVE_PASSWORD: root
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
+      SPRING_ELASTICSEARCH_URIS: http://elasticsearch:9200
       SPRING_SQL_INIT_MODE: always
       TZ: Asia/Shanghai
     volumes:
@@ -144,8 +210,10 @@ services:
       - seckill-network
 
 volumes:
-  mysql-data:
+  mysql-master-data:
+  mysql-slave-data:
   redis-data:
+  es-data:
   app1-logs:
   app2-logs:
   nginx-logs:

@@ -50,6 +50,10 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/api/product/**", "anon");
         filterChainDefinitionMap.put("/api/seckill/**", "anon");
 
+        // 搜索与读写分离测试 - 公开
+        filterChainDefinitionMap.put("/api/search/**", "anon");
+        filterChainDefinitionMap.put("/api/rw-test/**", "anon");
+
         // 需要认证的接口
         filterChainDefinitionMap.put("/api/auth/logout", "authc");
         filterChainDefinitionMap.put("/api/auth/info", "authc");
