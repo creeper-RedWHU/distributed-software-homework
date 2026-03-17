@@ -40,6 +40,53 @@ CREATE TABLE IF NOT EXISTS t_user_login (
     INDEX idx_user_type(user_type)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='用户登录表';
 
+-- =============================================
+-- 商品模块
+-- =============================================
+
+-- 商品表
+CREATE TABLE IF NOT EXISTS t_product (
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '商品ID',
+    product_name  VARCHAR(200) NOT NULL COMMENT '商品名称',
+    description   TEXT COMMENT '商品描述',
+    image_url     VARCHAR(500) COMMENT '商品图片',
+    price         DECIMAL(10,2) NOT NULL COMMENT '商品价格',
+    stock         INT NOT NULL DEFAULT 0 COMMENT '库存数量',
+    status        TINYINT DEFAULT 1 COMMENT '状态: 0下架 1上架',
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    updated_at    DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '更新时间',
+    INDEX idx_status(status)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='商品表';
+
+-- 秒杀商品表
+CREATE TABLE IF NOT EXISTS t_seckill_product (
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '秒杀ID',
+    product_id    BIGINT NOT NULL COMMENT '商品ID',
+    seckill_price DECIMAL(10,2) NOT NULL COMMENT '秒杀价格',
+    seckill_stock INT NOT NULL DEFAULT 0 COMMENT '秒杀库存',
+    start_time    DATETIME NOT NULL COMMENT '开始时间',
+    end_time      DATETIME NOT NULL COMMENT '结束时间',
+    status        TINYINT DEFAULT 1 COMMENT '状态: 0未开始 1进行中 2已结束',
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    INDEX idx_product(product_id),
+    INDEX idx_status(status),
+    INDEX idx_time(start_time, end_time)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='秒杀商品表';
+
+-- 秒杀订单表
+CREATE TABLE IF NOT EXISTS t_seckill_order (
+    id            BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '订单ID',
+    user_id       BIGINT NOT NULL COMMENT '用户ID',
+    seckill_id    BIGINT NOT NULL COMMENT '秒杀活动ID',
+    product_id    BIGINT NOT NULL COMMENT '商品ID',
+    order_price   DECIMAL(10,2) NOT NULL COMMENT '订单价格',
+    status        TINYINT DEFAULT 0 COMMENT '状态: 0未支付 1已支付 2已取消',
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    UNIQUE INDEX uk_user_seckill(user_id, seckill_id),
+    INDEX idx_user(user_id),
+    INDEX idx_seckill(seckill_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='秒杀订单表';
+
 -- 用户角色表
 CREATE TABLE IF NOT EXISTS t_user_role (
     id         BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
@@ -79,3 +126,19 @@ INSERT IGNORE INTO t_user_login (id, user_id, username, password, user_type, sal
 (1, 1, 'merchant1', '30f8e16932e191d7be1b9d7a163dd8596b1ce7706090143e559e282eff2d3f2c', 'MERCHANT', 'salt1merchant1234567890abcdefghij', 1),
 (2, 2, 'buyer1', 'f73a040aa367ab1170cd8aeec57009a2a982f8f85ac983f3db56f5dcb4d7723a', 'BUYER', 'salt2buyer1234567890abcdefghijklm', 1),
 (3, 3, 'admin1', '7f09e1c6d7d290eb8e1bdaac690beb085798898ea081e5e3c4dc5aff42060fb5', 'ADMIN', 'salt3admin1234567890abcdefghijklm', 1);
+
+-- =============================================
+-- 商品测试数据
+-- =============================================
+INSERT IGNORE INTO t_product (id, product_name, description, image_url, price, stock, status) VALUES
+(1, 'iPhone 15 Pro', 'Apple iPhone 15 Pro 256GB', '/static/images/iphone15.jpg', 7999.00, 1000, 1),
+(2, 'MacBook Pro 14', 'Apple MacBook Pro 14英寸 M3芯片', '/static/images/macbook.jpg', 14999.00, 500, 1),
+(3, 'AirPods Pro 2', 'Apple AirPods Pro 第二代', '/static/images/airpods.jpg', 1799.00, 2000, 1),
+(4, 'iPad Air', 'Apple iPad Air M1芯片 10.9英寸', '/static/images/ipad.jpg', 4799.00, 800, 1),
+(5, 'Apple Watch Ultra', 'Apple Watch Ultra 2 钛金属', '/static/images/watch.jpg', 6499.00, 300, 1);
+
+-- 秒杀活动测试数据
+INSERT IGNORE INTO t_seckill_product (id, product_id, seckill_price, seckill_stock, start_time, end_time, status) VALUES
+(1, 1, 5999.00, 100, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 1),
+(2, 3, 999.00, 50, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 1),
+(3, 5, 3999.00, 20, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 1);

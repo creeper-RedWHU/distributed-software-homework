@@ -17,20 +17,19 @@ spring:
       connection-timeout: 30000
       idle-timeout: 600000
 
-  # Redis
-  data:
-    redis:
-      host: localhost
-      port: 6379
-      password:
-      database: 0
-      timeout: 3000ms
-      lettuce:
-        pool:
-          max-active: 20
-          max-idle: 10
-          min-idle: 5
-          max-wait: 3000ms
+  # Redis (Spring Boot 2.7 使用 spring.redis 前缀)
+  redis:
+    host: localhost
+    port: 6379
+    password:
+    database: 0
+    timeout: 3000ms
+    lettuce:
+      pool:
+        max-active: 20
+        max-idle: 10
+        min-idle: 5
+        max-wait: 3000ms
 
   # Jackson
   jackson:

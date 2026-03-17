@@ -1,0 +1,195 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: #f5f7fa;
+    color: #333;
+    line-height: 1.6;
+}
+
+header {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    text-align: center;
+    padding: 40px 20px;
+}
+
+header h1 {
+    font-size: 2rem;
+    margin-bottom: 8px;
+}
+
+header .subtitle {
+    opacity: 0.85;
+    font-size: 1rem;
+}
+
+main {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 30px 20px;
+}
+
+section {
+    background: white;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 24px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+section h2 {
+    font-size: 1.3rem;
+    margin-bottom: 16px;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #667eea;
+    color: #333;
+}
+
+/* 按钮 */
+button {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 10px 24px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    margin: 4px;
+    transition: background 0.2s;
+}
+
+button:hover {
+    background: #5a6fd6;
+}
+
+button:active {
+    background: #4c5ec2;
+}
+
+/* 服务器信息区 */
+.server-info .info-card {
+    background: #f0f4ff;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 12px;
+    font-family: monospace;
+    font-size: 0.95rem;
+}
+
+.batch-result {
+    margin-top: 12px;
+    padding: 12px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 0.85rem;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+/* 商品网格 */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+}
+
+.product-card {
+    border: 1px solid #e8ecf1;
+    border-radius: 10px;
+    padding: 20px;
+    transition: box-shadow 0.2s;
+}
+
+.product-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+}
+
+.product-card h3 {
+    font-size: 1.1rem;
+    margin-bottom: 8px;
+}
+
+.product-card .price {
+    color: #e74c3c;
+    font-size: 1.3rem;
+    font-weight: bold;
+    margin: 8px 0;
+}
+
+.product-card .original-price {
+    color: #999;
+    text-decoration: line-through;
+    font-size: 0.9rem;
+    margin-left: 8px;
+}
+
+.product-card .stock {
+    color: #666;
+    font-size: 0.9rem;
+}
+
+.product-card .seckill-badge {
+    display: inline-block;
+    background: #e74c3c;
+    color: white;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    margin-bottom: 8px;
+}
+
+/* 详情区 */
+.detail-controls {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 16px;
+    flex-wrap: wrap;
+}
+
+.detail-controls input {
+    padding: 10px 14px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 0.95rem;
+    width: 160px;
+}
+
+.detail-card {
+    background: #f8f9fa;
+    padding: 16px;
+    border-radius: 8px;
+    font-family: monospace;
+    font-size: 0.9rem;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
+/* 加载状态 */
+.loading {
+    color: #999;
+    text-align: center;
+    padding: 20px;
+}
+
+/* footer */
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #999;
+    font-size: 0.85rem;
+}
+
+/* 响应式 */
+@media (max-width: 768px) {
+    header h1 { font-size: 1.5rem; }
+    .product-grid { grid-template-columns: 1fr; }
+    .detail-controls { flex-direction: column; align-items: stretch; }
+    .detail-controls input { width: 100%; }
+}

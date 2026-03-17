@@ -44,6 +44,11 @@ public class ShiroConfig {
         filterChainDefinitionMap.put("/api/user/register", "anon");
         filterChainDefinitionMap.put("/api/user/login", "anon");
         filterChainDefinitionMap.put("/ping", "anon");
+        filterChainDefinitionMap.put("/ping/", "anon");
+
+        // 商品与秒杀 - 查询接口公开
+        filterChainDefinitionMap.put("/api/product/**", "anon");
+        filterChainDefinitionMap.put("/api/seckill/**", "anon");
 
         // 需要认证的接口
         filterChainDefinitionMap.put("/api/auth/logout", "authc");
