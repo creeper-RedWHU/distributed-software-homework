@@ -73,9 +73,18 @@ CREATE TABLE IF NOT EXISTS t_seckill_product (
     INDEX idx_time(start_time, end_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='秒杀商品表';
 
--- 秒杀订单表
-CREATE TABLE IF NOT EXISTS t_seckill_order (
-    id            BIGINT AUTO_INCREMENT PRIMARY KEY COMMENT '订单ID',
+-- =============================================
+-- 秒杀订单表（ShardingSphere 分表）
+-- 逻辑表: t_seckill_order
+-- 物理表: t_seckill_order_0, t_seckill_order_1
+-- 分表策略: 按订单ID取模 (id % 2)
+-- 分库策略: 按用户ID路由 (user_id % N, 演示用单库)
+-- 订单ID: 雪花算法 + 基因法（低位嵌入userId哈希，支持路由查询）
+-- =============================================
+
+-- 分表0
+CREATE TABLE IF NOT EXISTS t_seckill_order_0 (
+    id            BIGINT PRIMARY KEY COMMENT '订单ID（雪花算法生成）',
     user_id       BIGINT NOT NULL COMMENT '用户ID',
     seckill_id    BIGINT NOT NULL COMMENT '秒杀活动ID',
     product_id    BIGINT NOT NULL COMMENT '商品ID',
@@ -85,7 +94,21 @@ CREATE TABLE IF NOT EXISTS t_seckill_order (
     UNIQUE INDEX uk_user_seckill(user_id, seckill_id),
     INDEX idx_user(user_id),
     INDEX idx_seckill(seckill_id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='秒杀订单表';
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='秒杀订单表-分片0';
+
+-- 分表1
+CREATE TABLE IF NOT EXISTS t_seckill_order_1 (
+    id            BIGINT PRIMARY KEY COMMENT '订单ID（雪花算法生成）',
+    user_id       BIGINT NOT NULL COMMENT '用户ID',
+    seckill_id    BIGINT NOT NULL COMMENT '秒杀活动ID',
+    product_id    BIGINT NOT NULL COMMENT '商品ID',
+    order_price   DECIMAL(10,2) NOT NULL COMMENT '订单价格',
+    status        TINYINT DEFAULT 0 COMMENT '状态: 0未支付 1已支付 2已取消',
+    created_at    DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+    UNIQUE INDEX uk_user_seckill(user_id, seckill_id),
+    INDEX idx_user(user_id),
+    INDEX idx_seckill(seckill_id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='秒杀订单表-分片1';
 
 -- 用户角色表
 CREATE TABLE IF NOT EXISTS t_user_role (

@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.common.Result;
+import com.example.demo.model.entity.SeckillOrder;
 import com.example.demo.model.vo.SeckillProductVO;
 import com.example.demo.service.SeckillService;
 import lombok.extern.slf4j.Slf4j;
@@ -9,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @Slf4j
 @RestController
@@ -21,20 +23,12 @@ public class SeckillController {
     @Value("${server.port:8080}")
     private String serverPort;
 
-    /**
-     * 秒杀商品列表
-     * GET /api/seckill/list
-     */
     @GetMapping("/list")
     public Result<List<SeckillProductVO>> getSeckillList() {
         log.info("[端口:{}] 查询秒杀列表", serverPort);
         return seckillService.getSeckillList();
     }
 
-    /**
-     * 秒杀商品详情
-     * GET /api/seckill/{id}
-     */
     @GetMapping("/{id}")
     public Result<SeckillProductVO> getSeckillDetail(@PathVariable Long id) {
         log.info("[端口:{}] 查询秒杀详情: seckillId={}", serverPort, id);
@@ -42,8 +36,8 @@ public class SeckillController {
     }
 
     /**
-     * 执行秒杀
-     * POST /api/seckill/do?userId=1&seckillId=1
+     * 执行秒杀（Kafka异步下单）
+     * 返回orderId，客户端轮询 /api/seckill/order/status/{orderId} 查询结果
      */
     @PostMapping("/do")
     public Result<Long> doSeckill(@RequestParam Long userId, @RequestParam Long seckillId) {
@@ -52,9 +46,31 @@ public class SeckillController {
     }
 
     /**
-     * 预热秒杀库存
-     * POST /api/seckill/{id}/warm-stock
+     * 查询订单处理状态（轮询接口）
      */
+    @GetMapping("/order/status/{orderId}")
+    public Result<Map<String, Object>> getOrderStatus(@PathVariable Long orderId) {
+        return seckillService.getOrderStatus(orderId);
+    }
+
+    /**
+     * 按用户ID查询订单列表
+     */
+    @GetMapping("/order/user/{userId}")
+    public Result<List<SeckillOrder>> getOrdersByUser(@PathVariable Long userId) {
+        log.info("[端口:{}] 查询用户订单: userId={}", serverPort, userId);
+        return seckillService.getOrdersByUserId(userId);
+    }
+
+    /**
+     * 按订单ID查询订单详情
+     */
+    @GetMapping("/order/{orderId}")
+    public Result<SeckillOrder> getOrderById(@PathVariable Long orderId) {
+        log.info("[端口:{}] 查询订单详情: orderId={}", serverPort, orderId);
+        return seckillService.getOrderById(orderId);
+    }
+
     @PostMapping("/{id}/warm-stock")
     public Result<String> warmStock(@PathVariable Long id) {
         seckillService.warmUpSeckillStock(id);

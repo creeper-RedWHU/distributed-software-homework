@@ -21,4 +21,18 @@ public interface SeckillOrderMapper {
             "VALUES (#{userId}, #{seckillId}, #{productId}, #{orderPrice}, #{status})")
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(SeckillOrder order);
+
+    @Insert("INSERT INTO t_seckill_order (id, user_id, seckill_id, product_id, order_price, status) " +
+            "VALUES (#{id}, #{userId}, #{seckillId}, #{productId}, #{orderPrice}, #{status})")
+    int insertWithId(SeckillOrder order);
+
+    @Select("SELECT id, user_id, seckill_id, product_id, order_price, status, created_at " +
+            "FROM t_seckill_order WHERE id = #{orderId}")
+    @ResultMap("seckillOrderMap")
+    SeckillOrder selectById(@Param("orderId") Long orderId);
+
+    @Select("SELECT id, user_id, seckill_id, product_id, order_price, status, created_at " +
+            "FROM t_seckill_order WHERE user_id = #{userId} ORDER BY created_at DESC")
+    @ResultMap("seckillOrderMap")
+    java.util.List<SeckillOrder> selectByUserId(@Param("userId") Long userId);
 }
