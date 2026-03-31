@@ -64,6 +64,7 @@ CREATE TABLE IF NOT EXISTS t_seckill_product (
     product_id    BIGINT NOT NULL COMMENT '商品ID',
     seckill_price DECIMAL(10,2) NOT NULL COMMENT '秒杀价格',
     seckill_stock INT NOT NULL DEFAULT 0 COMMENT '秒杀库存',
+    purchase_limit INT NOT NULL DEFAULT 1 COMMENT '每个用户的限购数量（当前下单接口按1件处理）',
     start_time    DATETIME NOT NULL COMMENT '开始时间',
     end_time      DATETIME NOT NULL COMMENT '结束时间',
     status        TINYINT DEFAULT 1 COMMENT '状态: 0未开始 1进行中 2已结束',
@@ -72,6 +73,9 @@ CREATE TABLE IF NOT EXISTS t_seckill_product (
     INDEX idx_status(status),
     INDEX idx_time(start_time, end_time)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='秒杀商品表';
+
+ALTER TABLE t_seckill_product
+    ADD COLUMN IF NOT EXISTS purchase_limit INT NOT NULL DEFAULT 1 COMMENT '每个用户的限购数量（当前下单接口按1件处理）' AFTER seckill_stock;
 
 -- =============================================
 -- 秒杀订单表（ShardingSphere 分表）
@@ -89,7 +93,7 @@ CREATE TABLE IF NOT EXISTS t_seckill_order_0 (
     seckill_id    BIGINT NOT NULL COMMENT '秒杀活动ID',
     product_id    BIGINT NOT NULL COMMENT '商品ID',
     order_price   DECIMAL(10,2) NOT NULL COMMENT '订单价格',
-    status        TINYINT DEFAULT 0 COMMENT '状态: 0未支付 1已支付 2已取消',
+    status        TINYINT DEFAULT 0 COMMENT '状态: 0待支付 1已支付 2已取消 3创建失败',
     created_at    DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     UNIQUE INDEX uk_user_seckill(user_id, seckill_id),
     INDEX idx_user(user_id),
@@ -103,7 +107,7 @@ CREATE TABLE IF NOT EXISTS t_seckill_order_1 (
     seckill_id    BIGINT NOT NULL COMMENT '秒杀活动ID',
     product_id    BIGINT NOT NULL COMMENT '商品ID',
     order_price   DECIMAL(10,2) NOT NULL COMMENT '订单价格',
-    status        TINYINT DEFAULT 0 COMMENT '状态: 0未支付 1已支付 2已取消',
+    status        TINYINT DEFAULT 0 COMMENT '状态: 0待支付 1已支付 2已取消 3创建失败',
     created_at    DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
     UNIQUE INDEX uk_user_seckill(user_id, seckill_id),
     INDEX idx_user(user_id),
@@ -161,7 +165,7 @@ INSERT IGNORE INTO t_product (id, product_name, description, image_url, price, s
 (5, 'Apple Watch Ultra', 'Apple Watch Ultra 2 钛金属', '/static/images/watch.jpg', 6499.00, 300, 1);
 
 -- 秒杀活动测试数据
-INSERT IGNORE INTO t_seckill_product (id, product_id, seckill_price, seckill_stock, start_time, end_time, status) VALUES
-(1, 1, 5999.00, 100, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 1),
-(2, 3, 999.00, 50, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 1),
-(3, 5, 3999.00, 20, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 1);
+INSERT IGNORE INTO t_seckill_product (id, product_id, seckill_price, seckill_stock, purchase_limit, start_time, end_time, status) VALUES
+(1, 1, 5999.00, 100, 1, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 1),
+(2, 3, 999.00, 50, 1, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 1),
+(3, 5, 3999.00, 20, 1, '2025-01-01 00:00:00', '2027-12-31 23:59:59', 1);

@@ -31,6 +31,12 @@ public interface SeckillOrderMapper {
     @ResultMap("seckillOrderMap")
     SeckillOrder selectById(@Param("orderId") Long orderId);
 
+    @Update("UPDATE t_seckill_order SET status = #{targetStatus} " +
+            "WHERE id = #{orderId} AND status = #{currentStatus}")
+    int updateStatus(@Param("orderId") Long orderId,
+                     @Param("currentStatus") Integer currentStatus,
+                     @Param("targetStatus") Integer targetStatus);
+
     @Select("SELECT id, user_id, seckill_id, product_id, order_price, status, created_at " +
             "FROM t_seckill_order WHERE user_id = #{userId} ORDER BY created_at DESC")
     @ResultMap("seckillOrderMap")

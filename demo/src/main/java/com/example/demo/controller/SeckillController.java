@@ -71,6 +71,12 @@ public class SeckillController {
         return seckillService.getOrderById(orderId);
     }
 
+    @PostMapping("/order/{orderId}/pay")
+    public Result<String> payOrder(@PathVariable Long orderId, @RequestParam Long userId) {
+        log.info("[端口:{}] 支付订单: orderId={}, userId={}", serverPort, orderId, userId);
+        return seckillService.payOrder(userId, orderId);
+    }
+
     @PostMapping("/{id}/warm-stock")
     public Result<String> warmStock(@PathVariable Long id) {
         seckillService.warmUpSeckillStock(id);

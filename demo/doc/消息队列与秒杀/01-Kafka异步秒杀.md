@@ -27,8 +27,8 @@
 │  1. 幂等检查：DB中是否已存在订单                       │
 │  2. 数据库扣减秒杀库存（乐观锁 stock > 0）            │
 │  3. 数据库扣减商品库存                                │
-│  4. 创建订单记录                                     │
-│  5. 更新Redis订单状态: PROCESSING → SUCCESS/FAILED    │
+│  4. 创建订单记录（PENDING_PAYMENT）                   │
+│  5. 更新Redis订单状态: PROCESSING → PENDING_PAYMENT   │
 └──────────────────────────────────────────────────────┘
 ```
 
@@ -40,10 +40,13 @@
 
 | 类 | 作用 |
 |---|------|
-| `KafkaConfig` | Kafka Topic 配置（seckill-order, 4分区） |
+| `KafkaConfig` | Kafka Topic 配置（seckill-order / seckill-order-pay） |
 | `SeckillOrderProducer` | 发送秒杀订单消息到 Kafka |
-| `SeckillOrderConsumer` | 消费Kafka消息，异步创建订单 |
+| `SeckillOrderConsumer` | 消费Kafka消息，异步扣库存并创建订单 |
+| `SeckillOrderPayProducer` | 发送订单支付消息到 Kafka |
+| `SeckillOrderPayConsumer` | 消费支付消息并更新订单状态 |
 | `SeckillOrderMessage` | Kafka消息体（orderId, userId, seckillId, productId, price） |
+| `SeckillOrderPayMessage` | Kafka 支付消息体（orderId, userId, payTime） |
 | `SeckillService.doSeckill()` | 秒杀入口：Redis预减库存 + 发送Kafka消息 |
 
 ### 2.2 Redis Lua 脚本（原子性防超卖）
@@ -102,7 +105,7 @@ public void consumeSeckillOrder(SeckillOrderMessage message) {
     seckillOrderMapper.insertWithId(order);
 
     // 4. 更新Redis状态
-    updateOrderStatus(orderId, "SUCCESS");
+    updateOrderStatus(orderId, "PENDING_PAYMENT");
 }
 ```
 
@@ -161,7 +164,8 @@ kafka:
 | **重复下单** | 四层幂等检查（Redis/Kafka/DB索引/Consumer查重） |
 | **消息丢失** | Kafka `acks=all` + `retries=3` |
 | **消费失败** | `@Transactional` 回滚 + 异常重新抛出触发Kafka重试 |
-| **Redis-DB不一致** | Kafka消费成功后更新Redis状态，失败标记FAILED |
+| **Redis-DB不一致** | Kafka发送失败立即回补Redis，消费失败执行库存补偿并标记FAILED |
+| **支付状态一致性** | 支付请求异步化，订单状态通过支付消息条件更新为PAID |
 
 ## 六、测试验证
 
@@ -177,9 +181,16 @@ curl -X POST "http://localhost/api/seckill/do?userId=1&seckillId=1"
 
 # 3. 轮询订单状态
 curl http://localhost/api/seckill/order/status/311778983551307793
-# 返回: {"status":"PROCESSING"} → {"status":"SUCCESS"}
+# 返回: {"status":"PROCESSING"} → {"status":"PENDING_PAYMENT"}
 
-# 4. 查询订单
+# 4. 支付订单
+curl -X POST "http://localhost/api/seckill/order/311778983551307793/pay?userId=1"
+
+# 5. 查询支付后状态
+curl http://localhost/api/seckill/order/status/311778983551307793
+# 返回: {"status":"PAID"}
+
+# 6. 查询订单
 curl http://localhost/api/seckill/order/311778983551307793
 ```
 

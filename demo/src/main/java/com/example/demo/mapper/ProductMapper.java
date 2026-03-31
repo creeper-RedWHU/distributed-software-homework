@@ -18,4 +18,6 @@ public interface ProductMapper {
     int updateStock(@Param("id") Long id, @Param("stock") Integer stock);
 
     int decrStock(@Param("id") Long id);
+
+    int incrStock(@Param("id") Long id);
 }

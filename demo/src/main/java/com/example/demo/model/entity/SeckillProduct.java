@@ -10,6 +10,7 @@ public class SeckillProduct {
     private Long productId;
     private BigDecimal seckillPrice;
     private Integer seckillStock;
+    private Integer purchaseLimit;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Integer status; // 0未开始 1进行中 2已结束

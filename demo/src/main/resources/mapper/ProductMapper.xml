@@ -41,4 +41,8 @@
         UPDATE t_product SET stock = stock - 1 WHERE id = #{id} AND stock > 0
     </update>
 
+    <update id="incrStock">
+        UPDATE t_product SET stock = stock + 1 WHERE id = #{id}
+    </update>
+
 </mapper>

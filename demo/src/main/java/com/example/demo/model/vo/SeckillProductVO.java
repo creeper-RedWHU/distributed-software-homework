@@ -14,6 +14,7 @@ public class SeckillProductVO {
     private BigDecimal originalPrice;
     private BigDecimal seckillPrice;
     private Integer seckillStock;
+    private Integer purchaseLimit;
     private LocalDateTime startTime;
     private LocalDateTime endTime;
     private Integer status;

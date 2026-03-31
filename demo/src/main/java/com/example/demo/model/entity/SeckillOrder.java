@@ -11,6 +11,6 @@ public class SeckillOrder {
     private Long seckillId;
     private Long productId;
     private BigDecimal orderPrice;
-    private Integer status; // 0未支付 1已支付 2已取消
+    private Integer status; // 0待支付 1已支付 2已取消 3创建失败
     private LocalDateTime createdAt;
 }

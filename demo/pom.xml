@@ -54,6 +54,13 @@
             <artifactId>spring-boot-starter-data-redis</artifactId>
         </dependency>
 
+        <!-- Align with ShardingSphere 5.3.2 at runtime -->
+        <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>1.33</version>
+        </dependency>
+
         <!-- AOP (读写分离切面) -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
