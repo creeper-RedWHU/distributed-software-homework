@@ -1,0 +1,57 @@
+server:
+  port: ${SERVER_PORT:9001}
+
+spring:
+  profiles:
+    active: ${SPRING_PROFILES_ACTIVE:node1}
+  cloud:
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:127.0.0.1:8858}
+      eager: true
+      datasource:
+        flow:
+          nacos:
+            server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+            namespace: ${NACOS_NAMESPACE:public}
+            group-id: ${NACOS_GROUP:DEFAULT_GROUP}
+            data-id: stock-service-sentinel-flow.json
+            rule-type: flow
+            data-type: json
+        degrade:
+          nacos:
+            server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+            namespace: ${NACOS_NAMESPACE:public}
+            group-id: ${NACOS_GROUP:DEFAULT_GROUP}
+            data-id: stock-service-sentinel-degrade.json
+            rule-type: degrade
+            data-type: json
+
+demo:
+  message: local-message
+  owner: local-owner
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,refresh
+  endpoint:
+    health:
+      show-details: always
+
+---
+spring:
+  config:
+    activate:
+      on-profile: node1
+server:
+  port: 9001
+
+---
+spring:
+  config:
+    activate:
+      on-profile: node2
+server:
+  port: 9002

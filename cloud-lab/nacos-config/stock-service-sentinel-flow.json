@@ -1,0 +1,10 @@
+[
+  {
+    "resource": "stockHotspot",
+    "limitApp": "default",
+    "grade": 1,
+    "count": 2.0,
+    "strategy": 0,
+    "controlBehavior": 0
+  }
+]

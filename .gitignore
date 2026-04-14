@@ -7,6 +7,7 @@
 target/
 *.jar
 *.war
+.m2-local/
 
 # OS
 .DS_Store

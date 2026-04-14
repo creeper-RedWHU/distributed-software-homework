@@ -1,0 +1,56 @@
+server:
+  port: 8088
+
+spring:
+  cloud:
+    gateway:
+      discovery:
+        locator:
+          enabled: true
+          lower-case-service-id: true
+      routes:
+        - id: stock-service-route
+          uri: lb://stock-service
+          predicates:
+            - Path=/stock/**
+          filters:
+            - StripPrefix=1
+            - name: CircuitBreaker
+              args:
+                name: stockCircuit
+                fallbackUri: forward:/fallback/stock
+    sentinel:
+      transport:
+        dashboard: ${SENTINEL_DASHBOARD:127.0.0.1:8858}
+      eager: true
+      datasource:
+        gw-flow:
+          nacos:
+            server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+            namespace: ${NACOS_NAMESPACE:public}
+            group-id: ${NACOS_GROUP:DEFAULT_GROUP}
+            data-id: gateway-service-sentinel-gateway.json
+            data-type: json
+            rule-type: gw-flow
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,gateway
+  endpoint:
+    health:
+      show-details: always
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      stockCircuit:
+        sliding-window-size: 10
+        minimum-number-of-calls: 5
+        failure-rate-threshold: 50
+        wait-duration-in-open-state: 10s
+  timelimiter:
+    instances:
+      stockCircuit:
+        timeout-duration: 2s
